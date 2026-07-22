@@ -1,0 +1,29 @@
+# 2. ADIM: Bu "kotu deploy"u uygula. Container her baslatildiginda hemen
+# cokecek -- kubelet'in kendi ic retry'i bunu COZEMEZ (kod/config hatasi,
+# gecici degil). Tek gercek cozum: onceki saglikli revizyona ROLLBACK.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crashloop-demo
+  namespace: test-app
+  labels:
+    app: crashloop-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crashloop-demo
+  template:
+    metadata:
+      labels:
+        app: crashloop-demo
+    spec:
+      containers:
+        - name: crashloop-demo
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - "echo 'Uygulama baslatiliyor (v2)...'; echo 'HATA: config dosyasi bozuk, uygulama baslatilamiyor (invalid config: missing DB_HOST)'; sleep 2; exit 1"
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 50m, memory: 32Mi }

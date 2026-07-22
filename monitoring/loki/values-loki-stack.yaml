@@ -1,0 +1,26 @@
+# grafana/loki-stack Helm chart degerleri.
+# Grafana'yi zaten kube-prometheus-stack ile kurduk, bu yuzden burada
+# Grafana'yi kapatiyoruz -- Loki'yi mevcut Grafana'ya datasource olarak
+# baglayacagiz (bkz. grafana-datasource-loki.yaml).
+
+grafana:
+  enabled: false
+
+promtail:
+  enabled: true
+  # Promtail her node'a DaemonSet olarak kurulur ve /var/log/pods
+  # altindaki tum container loglarini toplar.
+  config:
+    snippets:
+      pipelineStages:
+        - cri: {}
+
+loki:
+  isDefault: false
+  persistence:
+    enabled: false
+  # Yerel test ortami: kisa retention yeterli
+  config:
+    table_manager:
+      retention_deletes_enabled: true
+      retention_period: 24h

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Env / secrets
+.env
+*.local.yaml
+
+# OS
+.DS_Store
+
+# Kind / kubeconfig
+kubeconfig*.yaml
+
+# IDE
+.vscode/
+.idea/
+
+# Demo binaries (track via Git LFS or external link instead)
+demo/*.mp4

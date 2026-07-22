@@ -1,0 +1,63 @@
+# kube-prometheus-stack icin ozellestirilmis degerler.
+# Yerel Kind cluster'i icin persistence kapali, NodePort servisleri
+# kind/cluster.yaml'daki extraPortMappings ile eslesecek sekilde ayarlandi.
+
+grafana:
+  adminPassword: admin123
+  service:
+    type: NodePort
+    nodePort: 30000
+  # Varsayilan "Kubernetes / Compute Resources" dashboardlari zaten
+  # chart ile birlikte geliyor, ek olarak kendi dashboard'umuzu
+  # monitoring/grafana/dashboards altina koyup provisioning ile ekleyecegiz.
+  persistence:
+    enabled: false
+
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090
+  prometheusSpec:
+    # Yerel test ortami: disk persistence gerekmiyor, retention kisa tutuldu
+    retention: 6h
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    # Bizim yazacagimiz custom PrometheusRule'lari (CrashLoop, OOMKill vb.)
+    # otomatik olarak taniyabilmesi icin
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+  config:
+    route:
+      group_by: ["alertname", "namespace"]
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 5m
+      receiver: "ai-engine-webhook"
+      routes:
+        - receiver: "ai-engine-webhook"
+          continue: true
+    receivers:
+      - name: "ai-engine-webhook"
+        # 2. Asamada ai-engine servisi ayakta oldugunda bu URL gercek
+        # webhook endpoint'ine (routes/webhook.py) isaret edecek.
+        webhook_configs:
+          - url: "http://ai-engine.ai-engine.svc.cluster.local:8000/webhook/alert"
+            send_resolved: true
+
+# Node exporter ve kube-state-metrics chart ile birlikte otomatik gelir,
+# ek konfigurasyon gerekmiyor.

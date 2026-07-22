@@ -1,0 +1,29 @@
+# Prometheus Operator'in tanidigi ozel bir kural seti (CRD: PrometheusRule).
+# kube-prometheus-stack degerlerinde ruleSelectorNilUsesHelmValues=false
+# ayarladigimiz icin bu kural, ekstra bir etiket gerekmeden otomatik taninir.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: self-healing-alerts
+  namespace: monitoring
+spec:
+  groups:
+    - name: self-healing.rules
+      rules:
+        - alert: PodCrashLooping
+          # kube_state_metrics'in urettigi bu metrik, pod'un container'i
+          # CrashLoopBackOff durumundayken 1 degerini alir.
+          # label_replace ile pod adindan (orn: crashloop-demo-6f9...-x2k1)
+          # deployment adini (crashloop-demo) cikariyoruz -- boylece AI Engine
+          # scale/rollback aksiyonlari icin dogru deployment adini bilir.
+          expr: |
+            label_replace(
+              kube_pod_container_status_waiting_reason{namespace="test-app", reason="CrashLoopBackOff"} == 1,
+              "deployment", "$1", "pod", "(.+)-[^-]+-[^-]+"
+            )
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.pod }} surekli cokuyor (CrashLoopBackOff)"
+            description: "Namespace {{ $labels.namespace }} icindeki {{ $labels.pod }} pod'u CrashLoopBackOff durumunda. Deployment: {{ $labels.deployment }}"

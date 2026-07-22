@@ -1,0 +1,31 @@
+# ArgoCD Application: gitops/manifests/ klasorunu izler, cluster'daki
+# durumla GitHub'daki durumu senkronize eder. Bu, projenin GitOps katmani --
+# "cluster'in gercek hali, Git'teki hale eslesmeli" felsefesinin uygulamasi.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ai-self-healing-k8s
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    # !!! ASAGIDAKI URL'I KENDI GITHUB REPO'NLA DEGISTIR !!!
+    repoURL: https://github.com/KULLANICI_ADIN/ai-self-healing-k8s.git
+    targetRevision: main
+    path: gitops/manifests
+    directory:
+      recurse: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    # Not: her manifest kendi 'metadata.namespace' alanini tasidigi icin
+    # (monitoring, ai-engine, test-app) buradaki namespace sadece varsayilan.
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true      # Git'ten silinen kaynaklar cluster'dan da silinir
+      selfHeal: true   # Cluster'da elle yapilan degisiklikler Git'teki hale geri dondurulur
+    syncOptions:
+      - CreateNamespace=true

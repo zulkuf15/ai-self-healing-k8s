@@ -1,0 +1,28 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: self-healing-k8s
+
+# 1 control-plane + 2 worker node -> gercek bir cluster gibi davranmasi
+# ve pod'lari farkli node'lara dagitmasi icin (self-healing testlerinde
+# "hangi node'da ne oluyor" gormek daha ogretici olur)
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # Grafana dashboard'a localhost:3000 uzerinden erisim icin
+      - containerPort: 30000
+        hostPort: 3000
+        protocol: TCP
+      # Prometheus UI icin localhost:9090
+      - containerPort: 30090
+        hostPort: 9090
+        protocol: TCP
+      # AI Engine (Flask webhook servisi) icin localhost:8000
+      - containerPort: 30800
+        hostPort: 8000
+        protocol: TCP
+  - role: worker
+  - role: worker
+
+networking:
+  # Kind'in varsayilan pod/service CIDR'lari yeterli, degistirmiyoruz
+  disableDefaultCNI: false

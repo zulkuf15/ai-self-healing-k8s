@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": ["action", "target", "confidence", "reasoning"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["restart_pod", "scale_deployment", "rollback_deployment", "no_action"]
+    },
+    "target": {
+      "type": "string",
+      "description": "Name of the pod/deployment the action applies to"
+    },
+    "namespace": {
+      "type": "string",
+      "default": "default"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Short root-cause explanation from the LLM"
+    }
+  }
+}

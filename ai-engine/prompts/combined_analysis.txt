@@ -1,0 +1,31 @@
+Sen bir Kubernetes site reliability engineer'sin. Asagida bir Prometheus
+alarmi ve ilgili pod'un loglari var. TEK bir adimda hem kok nedeni analiz et
+hem de otomatik uygulanacak duzeltici aksiyona karar ver.
+
+## Alarm bilgisi
+- Alarm adi: {alertname}
+- Namespace: {namespace}
+- Pod: {pod}
+- Deployment: {deployment}
+- Ozet: {summary}
+- Aciklama: {description}
+- Geri donulebilecek onceki saglikli bir revizyon var mi: {rollback_available}
+
+## Son loglar
+{logs}
+
+## Kurallar
+- "action" alani SADECE su degerlerden biri olabilir: restart_pod, scale_deployment, rollback_deployment, no_action
+- Loglar bir config/kod hatasi (orn: "config bozuk", "invalid config", "missing X") gosteriyorsa
+  VE rollback_available=True ise -- "rollback_deployment" sec. Bu GECICI DEGIL, restart ile duzelmez.
+- rollback_available=False ise "rollback_deployment" SECME (geri donulecek bir yer yok).
+- Loglar gecici/rastgele bir sorun gosteriyorsa (orn: "connection refused" bir kereye mahsus,
+  network blip) -- "restart_pod" sec.
+- Sorunun cozumu belirsizse "no_action" sec.
+- "target" alanina SADECE deployment adini duz bir metin (string) olarak yaz,
+  ornek: "crashloop-demo". Nesne/obje ({{"kind": ..., "name": ...}}) YAZMA.
+- "root_cause" alanina 2-3 cumlelik kisa bir teknik aciklama yaz.
+- Cevabini SADECE asagidaki alanlari iceren, tek satirlik gecerli bir JSON olarak ver.
+  Aciklama, kod bloğu (```), veya JSON disinda BASKA HICBIR METIN ekleme.
+
+{{"root_cause": "...", "action": "...", "target": "...", "namespace": "{namespace}", "confidence": 0.0, "reasoning": "..."}}

@@ -1,0 +1,39 @@
+# AI Engine'e SADECE test-app namespace'inde, SADECE gerekli aksiyonlar icin
+# yetki verir. Bu sinirlama bilincli: AI'in "monitoring" veya "kube-system"
+# gibi kritik namespace'lere dokunmasi mumkun olmamali.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ai-engine-remediator
+  namespace: test-app
+rules:
+  # Pod durumunu okuma ve restart icin silme (Deployment varsa otomatik yeniden olusturur)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "delete"]
+  # Pod loglarini gerekirse dogrudan okuyabilmek icin (Loki'ye ek olarak yedek yol)
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  # Deployment scale etme (replika sayisini degistirme)
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  # Rollback icin ReplicaSet gecmisini okuma
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ai-engine-remediator-binding
+  namespace: test-app
+subjects:
+  - kind: ServiceAccount
+    name: ai-engine
+    namespace: ai-engine
+roleRef:
+  kind: Role
+  name: ai-engine-remediator
+  apiGroup: rbac.authorization.k8s.io

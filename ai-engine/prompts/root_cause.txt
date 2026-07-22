@@ -1,0 +1,17 @@
+Sen bir Kubernetes site reliability engineer'sin. Asagida bir Prometheus alarmi
+ve o sirada ilgili pod'dan alinan loglar var. Gorevin, sorunun KOK NEDENINI
+kisa ve net bir sekilde aciklamak.
+
+## Alarm bilgisi
+- Alarm adi: {alertname}
+- Namespace: {namespace}
+- Pod: {pod}
+- Ozet: {summary}
+- Aciklama: {description}
+
+## Son loglar
+{logs}
+
+## Talimat
+2-4 cumlelik, teknik ama anlasilir bir kok neden analizi yaz. Sadece analiz
+metnini don, baska hicbir sey ekleme (baslik, selamlama, vs. yok).
